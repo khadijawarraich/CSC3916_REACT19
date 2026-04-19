@@ -1,5 +1,4 @@
 import actionTypes from '../constants/actionTypes';
-//import runtimeEnv from '@mars/heroku-js-runtime-env'
 const env = process.env;
 
 function moviesFetched(movies) {
@@ -29,9 +28,10 @@ export function setMovie(movie) {
     }
 }
 
+// Fetch a single movie by MongoDB _id (includes reviews + avgRating)
 export function fetchMovie(movieId) {
     return dispatch => {
-        return fetch(`${env.REACT_APP_API_URL}/movies/${movieId}?reviews=true`, {
+        return fetch(`${env.REACT_APP_API_URL}/movies/id/${movieId}`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -43,7 +43,7 @@ export function fetchMovie(movieId) {
             if (!response.ok) {
                 throw Error(response.statusText);
             }
-            return response.json()
+            return response.json();
         }).then((res) => {
             dispatch(movieFetched(res));
         }).catch((e) => console.log(e));
@@ -52,7 +52,7 @@ export function fetchMovie(movieId) {
 
 export function fetchMovies() {
     return dispatch => {
-        return fetch(`${env.REACT_APP_API_URL}/movies?reviews=true`, {
+        return fetch(`${env.REACT_APP_API_URL}/movies`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -64,9 +64,33 @@ export function fetchMovies() {
             if (!response.ok) {
                 throw Error(response.statusText);
             }
-            return response.json()
+            return response.json();
         }).then((res) => {
             dispatch(moviesFetched(res));
+        }).catch((e) => console.log(e));
+    }
+}
+
+// Submit a review for a movie
+export function submitReview(reviewData) {
+    return dispatch => {
+        return fetch(`${env.REACT_APP_API_URL}/reviews`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('token')
+            },
+            body: JSON.stringify(reviewData),
+            mode: 'cors'
+        }).then((response) => {
+            if (!response.ok) {
+                throw Error(response.statusText);
+            }
+            return response.json();
+        }).then(() => {
+            // Re-fetch the movie to show the new review
+            dispatch(fetchMovie(reviewData.movieId));
         }).catch((e) => console.log(e));
     }
 }
