@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Card, ListGroup, ListGroupItem, Image, Form, Button, Alert } from 'react-bootstrap';
 import { BsStarFill } from 'react-icons/bs';
 import { useParams } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const MovieDetail = () => {
   const dispatch = useDispatch();
@@ -35,10 +36,14 @@ const MovieDetail = () => {
       return;
     }
 
+    const token = localStorage.getItem('token');
+    const decoded = jwtDecode(token.replace('JWT ', ''));
+    
     dispatch(submitReview({
       movieId: selectedMovie._id,
       review: reviewForm.review,
-      rating: rating
+      rating: rating,
+      username: decoded.username  
     }));
 
     setReviewForm({ rating: '', review: '' });
